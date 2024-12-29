@@ -1,5 +1,4 @@
 "use client";
-import { useForm } from "react-hook-form";
 import {
   Form,
   FormControl,
@@ -9,32 +8,32 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { AuthCard } from "./auth-card";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { LoginSchema } from "@/types/login-schema";
-import * as z from "zod";
-import { Input } from "../ui/input";
-import { Button } from "../ui/button";
-import Link from "next/link";
-import { emailSignin } from "@/server/actions/email-signin";
-import { useAction } from "next-safe-action/hooks";
 import { cn } from "@/lib/utils";
+import { reset } from "@/server/actions/password-reset";
+import { ResetSchema } from "@/types/reset-schema";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useAction } from "next-safe-action/hooks";
+import Link from "next/link";
 import { useState } from "react";
-import { FormSuccess } from "./form-success";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { AuthCard } from "./auth-card";
 import { FormError } from "./form-error";
+import { FormSuccess } from "./form-success";
 
-export const LoginForm = () => {
-  const form = useForm<z.infer<typeof LoginSchema>>({
-    resolver: zodResolver(LoginSchema),
+export const ResetForm = () => {
+  const form = useForm<z.infer<typeof ResetSchema>>({
+    resolver: zodResolver(ResetSchema),
     defaultValues: {
       email: "",
-      password: "",
     },
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const { execute, status } = useAction(emailSignin, {
+  const { execute, status } = useAction(reset, {
     onSuccess(response) {
       const { data } = response;
       if (data?.error) {
@@ -48,15 +47,15 @@ export const LoginForm = () => {
 
   const { control, handleSubmit } = form;
 
-  const onSubmit = (values: z.infer<typeof LoginSchema>) => {
+  const onSubmit = (values: z.infer<typeof ResetSchema>) => {
     execute(values);
   };
 
   return (
     <AuthCard
-      cardTitle="Welcome!"
-      backButtonHref="/auth/register"
-      backButtonLabel="Register"
+      cardTitle="Forgot your password?"
+      backButtonHref="/auth/login"
+      backButtonLabel="Back to login"
       showSocials
     >
       <div>
@@ -74,26 +73,8 @@ export const LoginForm = () => {
                         {...field}
                         placeholder="email@gmail.com"
                         type="email"
+                        disabled={status === "executing"}
                         autoComplete="email"
-                      />
-                    </FormControl>
-                    <FormDescription />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        placeholder="*****"
-                        type="password"
-                        autoComplete="current-password"
                       />
                     </FormControl>
                     <FormDescription />
@@ -114,7 +95,7 @@ export const LoginForm = () => {
                 status === "executing" ? "animate-pulse" : ""
               )}
             >
-              Login
+              Reset password
             </Button>
           </form>
         </Form>

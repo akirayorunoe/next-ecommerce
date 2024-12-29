@@ -1,5 +1,4 @@
 "use client";
-import { useForm } from "react-hook-form";
 import {
   Form,
   FormControl,
@@ -9,32 +8,36 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { AuthCard } from "./auth-card";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { LoginSchema } from "@/types/login-schema";
-import * as z from "zod";
-import { Input } from "../ui/input";
-import { Button } from "../ui/button";
-import Link from "next/link";
-import { emailSignin } from "@/server/actions/email-signin";
-import { useAction } from "next-safe-action/hooks";
 import { cn } from "@/lib/utils";
+import { newPassword } from "@/server/actions/new-password";
+import { NewPasswordSchema } from "@/types/new-password-schema";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useAction } from "next-safe-action/hooks";
+import Link from "next/link";
 import { useState } from "react";
-import { FormSuccess } from "./form-success";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { AuthCard } from "./auth-card";
 import { FormError } from "./form-error";
+import { FormSuccess } from "./form-success";
+import { useSearchParams } from "next/navigation";
 
-export const LoginForm = () => {
-  const form = useForm<z.infer<typeof LoginSchema>>({
-    resolver: zodResolver(LoginSchema),
+export const NewPasswordForm = () => {
+  const form = useForm<z.infer<typeof NewPasswordSchema>>({
+    resolver: zodResolver(NewPasswordSchema),
     defaultValues: {
-      email: "",
       password: "",
     },
   });
+
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const { execute, status } = useAction(emailSignin, {
+  const { execute, status } = useAction(newPassword, {
     onSuccess(response) {
       const { data } = response;
       if (data?.error) {
@@ -48,40 +51,21 @@ export const LoginForm = () => {
 
   const { control, handleSubmit } = form;
 
-  const onSubmit = (values: z.infer<typeof LoginSchema>) => {
-    execute(values);
+  const onSubmit = (values: z.infer<typeof NewPasswordSchema>) => {
+    execute({ password: values.password, token });
   };
 
   return (
     <AuthCard
-      cardTitle="Welcome!"
-      backButtonHref="/auth/register"
-      backButtonLabel="Register"
+      cardTitle="Enter a new password"
+      backButtonHref="/auth/login"
+      backButtonLabel="Back to login"
       showSocials
     >
       <div>
         <Form {...form}>
           <form onSubmit={handleSubmit(onSubmit)}>
             <div>
-              <FormField
-                control={control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        placeholder="email@gmail.com"
-                        type="email"
-                        autoComplete="email"
-                      />
-                    </FormControl>
-                    <FormDescription />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
               <FormField
                 control={control}
                 name="password"
@@ -94,6 +78,7 @@ export const LoginForm = () => {
                         placeholder="*****"
                         type="password"
                         autoComplete="current-password"
+                        disabled={status === "executing"}
                       />
                     </FormControl>
                     <FormDescription />
@@ -114,7 +99,7 @@ export const LoginForm = () => {
                 status === "executing" ? "animate-pulse" : ""
               )}
             >
-              Login
+              Reset password
             </Button>
           </form>
         </Form>
